@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Звёздочка* — Независимый рентген банковских ловушек</title>
+<script src="/pdf.min.js"></script>
+<style>
+  :root {
+    --bg:#F4F6F9; --card:#FFFFFF; --text:#0F172A; --muted:#64748B; --border:#E2E8F0;
+    --green:#10B981; --green-bg:rgba(16,185,129,0.1); --red:#EF4444; --red-bg:rgba(239,68,68,0.08);
+    --amber:#F59E0B; --input:#F8FAFC;
+  }
+  body.dark {
+    --bg:#0B0F17; --card:#131A26; --text:#F1F5F9; --muted:#94A3B8; --border:#1E293B;
+    --green:#10B981; --green-bg:rgba(16,185,129,0.14); --red:#F87171; --red-bg:rgba(248,113,113,0.12);
+    --input:#0F1622;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif; background:var(--bg); color:var(--text); display:flex; min-height:100vh; }
+  .sidebar { width:260px; background:var(--card); border-right:1px solid var(--border); padding:18px 16px; display:flex; flex-direction:column; gap:5px; position:fixed; height:100vh; overflow-y:auto; }
+  .logo { display:flex; align-items:center; gap:12px; padding:0 8px 14px; border-bottom:1px solid var(--border); margin-bottom:4px; }
+  .logo-badge { width:38px; height:38px; border-radius:11px; background:var(--green); color:#fff; font-weight:800; font-size:22px; display:flex; align-items:center; justify-content:center; }
+  .logo-title { font-weight:800; font-size:19px; }
+  .logo-sub { font-size:11px; color:var(--muted); }
+  .nav-label { font-size:11px; font-weight:700; color:var(--muted); padding:6px 12px 2px; letter-spacing:.05em; }
+  .nav-btn { display:flex; align-items:center; gap:10px; padding:9px 14px; border-radius:11px; border:none; background:transparent; color:var(--text); font-size:13.5px; font-weight:500; cursor:pointer; text-align:left; transition:.15s; }
+  .nav-btn:hover { background:var(--input); }
+  .nav-btn.active { background:var(--green-bg); color:var(--green); font-weight:600; }
+  .stats-pill { background:var(--input); border:1px solid var(--border); border-radius:12px; padding:10px 12px; font-size:12px; margin-top:4px; }
+  .donate-card { background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.3); border-radius:12px; padding:10px 12px; font-size:12px; margin-top:4px; }
+  .donate-btn { width:100%; margin-top:7px; background:var(--amber); color:#fff; border:none; padding:8px 12px; border-radius:9px; font-weight:700; font-size:12.5px; cursor:pointer; }
+  .privacy-box { margin-top:auto; background:var(--green-bg); border:1px solid rgba(16,185,129,0.25); border-radius:12px; padding:10px 12px; font-size:11px; color:var(--green); line-height:1.38; }
+  .main { margin-left:260px; flex:1; padding:28px 34px; max-width:1280px; display:flex; flex-direction:column; }
+  .topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; gap:16px; }
+  .topbar h1 { font-size:24px; font-weight:800; }
+  .topbar p { font-size:13px; color:var(--muted); margin-top:4px; }
+  .theme-btn { padding:9px 16px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text); font-weight:600; font-size:13px; cursor:pointer; }
+  .grid-2 { display:grid; grid-template-columns:1.25fr 1fr; gap:22px; align-items:start; }
+  .card { background:var(--card); border:1px solid var(--border); border-radius:18px; padding:24px; }
+  .card h2 { font-size:17px; font-weight:700; margin-bottom:4px; }
+  .card-sub { font-size:12.5px; color:var(--muted); margin-bottom:16px; }
+  .dropzone { border:2px dashed var(--green); background:var(--green-bg); border-radius:16px; padding:34px 20px; text-align:center; cursor:pointer; display:block; }
+  .btn-primary { display:inline-block; margin-top:14px; background:var(--green); color:#fff; border:none; padding:11px 22px; border-radius:11px; font-weight:600; font-size:14px; cursor:pointer; }
+  .field { margin-bottom:14px; }
+  .field label { display:block; font-size:12.5px; color:var(--muted); margin-bottom:6px; font-weight:500; }
+  .field input, .field textarea, .field select { width:100%; padding:11px 14px; border-radius:11px; border:1px solid var(--border); background:var(--input); color:var(--text); font-family:Consolas,monospace; font-size:14px; }
+  .field textarea, .field select { font-family:inherit; resize:vertical; }
+  .bar-wrap { width:100%; height:34px; background:var(--green); border-radius:10px; overflow:hidden; margin:14px 0; display:flex; }
+  .bar-fill { background:var(--red); color:#fff; font-weight:700; font-size:12.5px; display:flex; align-items:center; justify-content:center; white-space:nowrap; transition:.25s; width:50%; }
+  .verdict { background:var(--red-bg); border:1px solid rgba(239,68,68,0.2); border-radius:12px; padding:14px; font-size:13px; line-height:1.5; }
+  .tab { display:none; }
+  .tab.active { display:block; }
+  .scen-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px; }
+  .scen-box { border-radius:14px; padding:15px; font-size:12.5px; }
+  .scen-a { background:var(--red-bg); border:1px solid rgba(239,68,68,0.22); }
+  .scen-b { background:var(--green-bg); border:1px solid rgba(16,185,129,0.25); }
+  .filter-bar { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:18px; }
+  .f-btn { padding:8px 14px; border-radius:10px; border:1px solid var(--border); background:var(--card); color:var(--text); font-size:13px; font-weight:600; cursor:pointer; }
+  .f-btn.active { background:var(--green); color:#fff; border-color:var(--green); }
+  .bank-card, .fb-item { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:20px; margin-bottom:14px; }
+  .fb-item { padding:14px 16px; margin-bottom:10px; background:var(--input); }
+  .legal-footer { margin-top:32px; padding-top:16px; border-top:1px solid var(--border); font-size:11.5px; color:var(--muted); line-height:1.55; }
+  .modal-bg { display:none; position:fixed; inset:0; background:rgba(15,23,42,0.65); z-index:100; align-items:center; justify-content:center; padding:16px; }
+  .modal-bg.open { display:flex; }
+  .modal-card { background:var(--card); border:1px solid var(--border); border-radius:18px; max-width:440px; width:100%; padding:24px; }
+  .amt-row { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:12px 0; }
+  .amt-pill { padding:10px; border-radius:10px; border:1px solid var(--border); background:var(--input); color:var(--text); font-weight:700; cursor:pointer; }
+  .amt-pill.active { background:var(--amber); color:#fff; border-color:var(--amber); }
+  @media(max-width:920px){ .sidebar{display:none;} .main{margin-left:0;} .grid-2,.scen-grid{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="logo">
+    <div class="logo-badge">*</div>
+    <div><div class="logo-title">Звёздочка*</div><div class="logo-sub">Рентген банковских ловушек</div></div>
+  </div>
+  <div class="nav-label">НАВИГАЦИЯ</div>
+  <button class="nav-btn active" onclick="showTab('tab-scan', this)">Рентген выписки PDF</button>
+  <button class="nav-btn" onclick="showTab('tab-banks', this)">Обзор ловушек (ИФТ)</button>
+  <button class="nav-btn" onclick="showTab('tab-calc', this)">Куда уходит платёж</button>
+  <button class="nav-btn" onclick="showTab('tab-claim', this)">Заявление на возврат</button>
+  <button class="nav-btn" onclick="showTab('tab-method', this)">Как мы считаем</button>
+  <button class="nav-btn" onclick="showTab('tab-feedback', this)">Отзывы и баг-репорты</button>
+  <button class="nav-btn" onclick="showTab('tab-about', this)">О нас и миссия</button>
+
+  <div class="stats-pill" id="live-stats">
+    <div style="font-weight:700;margin-bottom:3px;">Народный реестр ИФТ</div>
+    <div style="color:var(--muted);">Проверено документов: <b id="st-cases" style="color:var(--text);">0</b></div>
+    <div style="color:var(--muted);">Выявлено комиссий: <b id="st-fees" style="color:var(--red);">0,00 ₽</b></div>
+  </div>
+
+  <div class="donate-card">
+    <div style="font-weight:700;color:var(--amber);">Бесплатно для людей</div>
+    <div style="color:var(--muted);margin-top:2px;line-height:1.35;">Сервис работает без подписок и рекламы.</div>
+    <button class="donate-btn" onclick="openDonateModal()">Поддержать через ЮMoney</button>
+  </div>
+
+  <div class="privacy-box"><b>Полная анонимность</b><br>Выписка расшифровывается только в памяти вашего браузера (152-ФЗ).</div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <h1>Универсальный рентген банковских документов</h1>
+      <p>Координатно-табличный разбор выписок и справок Совкомбанка, Сбера, Т-Банка, Альфа-Банка и ВТБ</p>
+    </div>
+    <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">Тёмная тема</button>
+  </div>
+
+  <section id="tab-scan" class="tab active">
+    <div class="grid-2">
+      <div class="card">
+        <label class="dropzone" id="dropzone" for="pdf-input">
+          <div style="font-size:28px;margin-bottom:8px;">📄</div>
+          <div style="font-weight:700;font-size:16px;">Нажмите или перетащите PDF-выписку или Справку о задолженности</div>
+          <div style="font-size:13px;color:var(--muted);margin-top:6px;">Универсальный движок распознаёт любые суммы и даты без привязки к шаблонам</div>
+          <span class="btn-primary">Выбрать PDF-файл с устройства</span>
+        </label>
+        <input type="file" id="pdf-input" accept="application/pdf" style="display:none;">
+        <div id="scan-result" style="display:none;margin-top:20px;">
+          <div id="scan-header" style="font-weight:700;font-size:16px;margin-bottom:8px;"></div>
+          <div id="scan-summary" class="verdict" style="background:var(--green-bg);border-color:rgba(16,185,129,0.25);margin-bottom:14px;"></div>
+          <div id="scan-items" style="display:flex;flex-direction:column;gap:8px;max-height:260px;overflow-y:auto;"></div>
+          <div class="scen-grid">
+            <div class="scen-box scen-a" id="scen-a"></div>
+            <div class="scen-box scen-b" id="scen-b"></div>
+          </div>
+          <button class="btn-primary" style="width:100%;margin-top:16px;" onclick="showTab('tab-claim', document.querySelectorAll('.nav-btn').item(3))">Перенести найденные комиссии в заявление на возврат</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Быстрый расчёт платежа</h2>
+        <div class="card-sub">Автоматически заполняется из PDF или меняется вручную</div>
+        <div class="field"><label>Остаток основного долга (₽)</label><input type="number" id="q_debt" placeholder="0,00"></div>
+        <div class="field"><label>Внесено клиентом за период (₽)</label><input type="number" id="q_pay" placeholder="0,00"></div>
+        <div class="field"><label>Удержано в комиссии, подписки и услуги (₽)</label><input type="number" id="q_fees" placeholder="0,00"></div>
+        <div class="bar-wrap"><div class="bar-fill" id="q_bar">Ожидание данных</div></div>
+        <div class="verdict" id="q_verdict">Загрузите PDF-выписку слева или введите свои суммы выше для расчёта.</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-banks" class="tab">
+    <div class="filter-bar" id="bank-filters">
+      <button class="f-btn active" onclick="renderBanks('all', this)">Все ловушки</button>
+      <button class="f-btn" onclick="renderBanks('installment', this)">Карты рассрочки</button>
+      <button class="f-btn" onclick="renderBanks('credit_cards', this)">Кредитные карты</button>
+      <button class="f-btn" onclick="renderBanks('loans', this)">Наличные кредиты</button>
+      <button class="f-btn" onclick="renderBanks('debit', this)">Дебетовые карты</button>
+    </div>
+    <div id="banks-list"></div>
+  </section>
+  <section id="tab-calc" class="tab">
+    <div class="card" style="max-width:760px;">
+      <h2>Детальный калькулятор распила платежа</h2>
+      <div class="card-sub">Помесячное моделирование с учётом снижения остатка основного долга</div>
+      <div class="field"><label>Остаток основного долга (₽)</label><input type="number" id="c_debt" placeholder="0,00"></div>
+      <div class="field"><label>Сколько вы внесли в этом месяце (₽)</label><input type="number" id="c_pay" placeholder="0,00"></div>
+      <div class="field"><label>Комиссия за «Минимальный платёж» / проценты (₽)</label><input type="number" id="c_f1" placeholder="0,00"></div>
+      <div class="field"><label>Плата за подписки, страховки, переводы и СМС (₽)</label><input type="number" id="c_f2" placeholder="0,00"></div>
+      <div class="bar-wrap"><div class="bar-fill" id="c_bar">Ожидание данных</div></div>
+      <div class="verdict" id="c_verdict">Введите суммы из вашего договора или загрузите PDF-выписку для автоматического заполнения.</div>
+    </div>
+  </section>
+
+  <section id="tab-claim" class="tab">
+    <div class="grid-2">
+      <div class="card">
+        <h2>Конструктор претензии на возврат комиссий</h2>
+        <div class="card-sub">Формируется локально в браузере без отправки на сервер</div>
+        <div class="field"><label>Наименование банка</label><input type="text" id="cl_bank" placeholder="Например: ПАО «Совкомбанк»"></div>
+        <div class="field"><label>ФИО держателя карты</label><input type="text" id="cl_fio" placeholder="Введите ФИО или оставьте шаблон [ФИО]"></div>
+        <div class="field"><label>Общая сумма внесённых клиентом средств (₽)</label><input type="number" id="cl_paid" placeholder="0,00"></div>
+        <div class="field"><label>Сумма удержанных комиссий к возврату (₽)</label><input type="number" id="cl_fees" placeholder="0,00"></div>
+        <div class="field"><label>Детализация удержаний</label><textarea id="cl_desc" rows="3" placeholder="Заполняется автоматически при загрузке PDF..."></textarea></div>
+        <button class="btn-primary" onclick="buildClaim()">Сформировать текст претензии</button>
+      </div>
+      <div class="card">
+        <h2>Готовый текст для чата банка, Банки.ру или ЦБ РФ</h2>
+        <div class="card-sub">Скопируйте и отправьте в поддержку банка для регистрации обращения</div>
+        <div class="field"><textarea id="cl_out" rows="15" readonly placeholder="Нажмите «Сформировать текст претензии» слева..."></textarea></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+          <button class="btn-primary" onclick="navigator.clipboard.writeText(document.getElementById('cl_out').value)">Скопировать текст</button>
+          <button class="btn-primary" style="background:var(--amber);" onclick="openDonateModal()">Сказать спасибо проекту</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-method" class="tab">
+    <div class="card" style="max-width:760px;line-height:1.65;">
+      <h2>Открытая методология Индекса финансовой токсичности (ИФТ)</h2>
+      <div class="card-sub">Математическая оценка скрытых условий без купленных отзывов</div>
+      <p style="margin-bottom:10px;"><b>1. Скрытая годовая переплата (до 50 баллов):</b> перевод ежемесячных комиссий за минимальный платёж и страховок в реальные годовые проценты (например, 3,9%/мес. = 46,8% годовых).</p>
+      <p style="margin-bottom:10px;"><b>2. Доля комиссий в платеже (до 30 баллов):</b> отношение удержанных комиссий и подписок к сумме внесённого клиентом платежа.</p>
+      <p><b>3. Автоматические списания без оказания услуги (до 20 баллов):</b> наличие подписок и страховок, продолжающих списываться даже после окончания льготного периода.</p>
+    </div>
+  </section>
+
+  <section id="tab-feedback" class="tab">
+    <div class="grid-2">
+      <div class="card">
+        <h2>Обратная связь, отзывы и баг-репорты</h2>
+        <div class="card-sub">Помог ли вам парсер вернуть комиссии? Или заметили неточность в выписке другого банка? Напишите нам!</div>
+        <div class="field"><label>Ваше имя или ник</label><input type="text" id="fb_name" placeholder="Например: Алексей, г. Волгоград"></div>
+        <div class="field">
+          <label>Тип обращения</label>
+          <select id="fb_type">
+            <option value="Отзыв о помощи">Положительный отзыв — парсер помог разобраться</option>
+            <option value="Ошибка / баг">Сообщить об ошибке или неточности расчёта</option>
+            <option value="Предложение">Предложить новый банк или функцию</option>
+          </select>
+        </div>
+        <div class="field"><label>Банк / продукт (необязательно)</label><input type="text" id="fb_bank" placeholder="Например: Совкомбанк, Сбер, Т-Банк"></div>
+        <div class="field"><label>Ваше сообщение (не указывайте номера карт и паспорта)</label><textarea id="fb_msg" rows="4" placeholder="Расскажите, сколько комиссий удалось найти или что нужно улучшить..."></textarea></div>
+        <button class="btn-primary" onclick="sendFeedback()">Отправить отзыв / сообщение</button>
+        <div id="fb_status" style="margin-top:10px;font-size:13px;font-weight:600;color:var(--green);"></div>
+      </div>
+      <div class="card">
+        <h2>Лента отзывов и обращений пользователей</h2>
+        <div class="card-sub">Реальные истории пользователей проекта «Звёздочка*»</div>
+        <div id="fb_list" style="max-height:460px;overflow-y:auto;"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-about" class="tab">
+    <div class="card" style="max-width:820px;line-height:1.7;">
+      <h2>О проекте «Звёздочка*»: наша миссия и принципы</h2>
+      <div class="card-sub">Независимый социально-просветительский инструмент финансовой самообороны</div>
+      <p style="margin-bottom:12px;"><b>Зачем мы создали этот сайт?</b> В кредитных договорах, картах рассрочки и банковских тарифах ключевые условия нередко выносятся в сноски под звёздочкой (*): плата за «минимальный платёж», автопродлеваемые подписки и комиссии за переводы заёмных средств. Мы создали «Звёздочку*», чтобы любой человек — без юридического и финансового образования — мог за 5 секунд перевести сложные формулировки тарифов на понятный язык цифр и увидеть реальную переплату.</p>
+      <p style="margin-bottom:12px;"><b>Как именно сервис помогает людям?</b> Наш координатный сканер разбирает официальные PDF-выписки и справки прямо в браузере, отделяет погашение основного долга от комиссий и подписок, сравнивает сценарии выплаты и помогает сформировать аргументированное досудебное обращение в банк, Финансовому уполномоченному (finombudsman.ru) и в Банк России.</p>
+      <p style="margin-bottom:12px;"><b>Безвозмездность и благородные намерения:</b> Проект создан исключительно с просветительской и общественно полезной целью. Мы не продаём платные подписки, не навязываем кредиты, не сотрудничаем с банками за вознаграждение и не просим плату за использование калькуляторов или парсера. Все инструменты открыты и бесплатны для каждого гражданина.</p>
+      <p><b>Уважение к вашей приватности (152-ФЗ):</b> Мы принципиально не собираем персональные данные, ФИО и номера счетов клиентов — ваши PDF-документы обрабатываются локально в памяти вашего устройства и никуда не передаются.</p>
+    </div>
+  </section>
+
+  <footer class="legal-footer">
+    <b>Правовая информация и отказ от ответственности:</b> Сервис «Звёздочка*» носит исключительно справочно-информационный и образовательный характер и не является индивидуальной финансовой или юридической консультацией. Все расчёты основаны на открытой авторской методологии (ИФТ) и публичных тарифах кредитных организаций. Персональные данные и PDF-файлы обрабатываются локально в браузере пользователя и не передаются на сервер (ст. 6 ФЗ-152).
+  </footer>
+</main>
+
+<div class="modal-bg" id="donateModal" onclick="if(event.target===this)closeDonateModal()">
+  <div class="modal-card">
+    <h2 style="font-size:18px;">Добровольная поддержка «Звёздочки*»</h2>
+    <p style="font-size:12.5px;color:var(--muted);margin-top:6px;line-height:1.45;">Все инструменты сайта полностью бесплатны. Вы можете поддержать развитие проекта безвозмездным пожертвованием (ст. 582 ГК РФ) через защищённую страницу ЮMoney.</p>
+    <div class="amt-row">
+      <button class="amt-pill active" onclick="setDonateAmt(100, this)">100 ₽</button>
+      <button class="amt-pill" onclick="setDonateAmt(300, this)">300 ₽</button>
+      <button class="amt-pill" onclick="setDonateAmt(500, this)">500 ₽</button>
+    </div>
+    <div class="field"><label>Или укажите свою сумму (₽)</label><input type="number" id="don_sum" value="100" min="10"></div>
+    <button class="btn-primary" style="width:100%;background:var(--amber);" onclick="goYooMoney()">Перейти к пожертвованию в ЮMoney</button>
+    <button class="theme-btn" style="width:100%;margin-top:8px;" onclick="closeDonateModal()">Закрыть</button>
+  </div>
+</div>
+
+<script src="/banks_data.js"></script>
+<script src="/scanner_engine.js"></script>
+</body>
+</html>
